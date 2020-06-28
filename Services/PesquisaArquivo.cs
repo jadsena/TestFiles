@@ -22,18 +22,21 @@ namespace TestFiles.Services
             _logger.LogInformation($"Pesquisando a transação [{_options.Transacao}] no diretório [{_options.Diretorio}]");
             var files = Directory.GetFiles(_options.Diretorio, _options.Arquivos);
             StringBuilder sb = new StringBuilder();
+            Regex regex = new Regex($".*{_options.Transacao}.*");
+            string content = "";
             foreach (var filename in files)
             {
-                _logger.LogInformation(filename);
+                _logger.LogInformation($"Lendo o arquivo: {filename}");
                 using(StreamReader sr = new StreamReader(filename))
                 {
-                    var content = sr.ReadToEnd();
-                    Regex regex = new Regex($".*{_options.Transacao}.*");
-                    foreach (Match match in regex.Matches(content))
-                    {
-                        string line = match.Value.Replace(Environment.NewLine, "").Replace('\r',' ');
-                        sb.AppendLine(line);
-                    }
+                    content = sr.ReadToEnd();
+                }
+                var Matches = regex.Matches(content);
+                _logger.LogInformation($"    Encontrado(s) [{Matches.Count}] registro(s)");
+                foreach (Match match in Matches)
+                {
+                    string line = match.Value.Replace(Environment.NewLine, "").Replace('\r',' ');
+                    sb.AppendLine(line);
                 }
             }
             using(StreamWriter sw = new StreamWriter(_options.ArquivoSaida))
@@ -41,7 +44,7 @@ namespace TestFiles.Services
                 sw.Write(sb.ToString());
                 sw.Flush();
             }
-            _logger.LogInformation("Sucesso!!!");
+            _logger.LogInformation($"O arquivo [{_options.ArquivoSaida}] foi gerado com sucesso!!!");
         }
     }
 }
